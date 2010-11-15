@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+
+<project name="MidpSSH-package" basedir="." default="all">
+
+	<property file="build.properties" />
+	
+	<target name="all" depends="init,build-uptodate">
+		<antcall target="build" />
+		<antcall target="build-run" />
+	</target>
+
+	<target name="build" unless="build.uptodate">
+		<antcall target="build2" />
+	</target>
+
+	<target name="build2" depends="package,obfuscate,preverify,checksum">
+
+	</target>
+
+	<target name="init" depends="init-midp1,init-midp2,init-mode">
+		<mkdir dir="${dist.dir}" />
+		<property name="jar.file" value="${filename}.jar" />
+		<property name="jad.file" value="${filename}.jad" />
+	</target>
+
+	<target name="init-mode" if="mode">
+		<property file="build-${mode}.properties" />
+	</target>
+
+	<target name="init-midp1" if="midp1">
+		<property name="wtk.midp.version" value="1.0" />
+		<property name="preprocess.symbols.midp" value="midp1" />
+
+		<path id="wtk.classpath.midp1">
+			<fileset dir="${wtk.home}">
+				<include name="lib/midpapi10.jar" />
+				<include name="lib/cldcapi10.jar" />
+			</fileset>
+		</path>
+		<property name="wtk.classpath" value="wtk.classpath.midp1" />
+	</target>
+
+	<target name="init-midp2" if="midp2">
+		<property name="wtk.midp.version" value="2.0" />
+		<property name="preprocess.symbols.midp" value="midp2" />
+
+		<path id="wtk.classpath.midp2">
+			<fileset dir="${wtk.home}">
+				<include name="lib/midpapi20.jar" />
+				<include name="lib/cldcapi10.jar" />
+			</fileset>
+		</path>
+		<property name="wtk.classpath" value="wtk.classpath.midp2" />
+	</target>
+
+	<target name="build-run" if="run">
+		<wtkrun jadfile="${dist.dir}/${jad.file}" device="${deviceName}" wait="true" />
+	</target>
+
+	<target name="jad" depends="jad-deploy,jad-run">
+
+	</target>
+
+	<target name="jad-deploy" unless="run">
+		<antcall target="jad-deploy-icon" />
+		<antcall target="jad-deploy-noicon" />
+	</target>
+
+	<target name="jad-deploy-icon" if="jad.icon">
+		<echo message="JAD-DEVICE-ICON" />
+		<wtkjad jadfile="${dist.dir}/${jad.file}" jarfile="${dist.dir}/${jar.file}" name="${name}" vendor="${jad.vendor}" version="${version}" target="${jad.target}">
+
+			<midlet name="${name}" class="app.Main" icon="/${jad.icon}" />
+			<attribute name="MIDlet-Permissions" value="javax.microedition.io.Connector.socket" />
+		</wtkjad>
+	</target>
+
+	<target name="jad-deploy-noicon" unless="jad.icon">
+		<wtkjad jadfile="${dist.dir}/${jad.file}" jarfile="${dist.dir}/${jar.file}" name="${name}" vendor="${jad.vendor}" version="${version}" target="${jad.target}">
+
+			<midlet name="${name}" class="app.Main" />
+			<attribute name="MIDlet-Permissions" value="javax.microedition.io.Connector.socket" />
+		</wtkjad>
+	</target>
+
+	<target name="jad-run" if="run">
+		<wtkjad jadfile="${dist.dir}/${jad.file}" jarfile="${dist.dir}/${jar.file}" name="${name}" vendor="${jad.vendor}" version="${version}">
+
+			<midlet name="${name}" class="app.Main" icon="/${jad.icon}" />
+		</wtkjad>
+	</target>
+
+	<target name="build-uptodate">
+		<uptodate property="build.uptodate" targetfile="${dist.dir}/${jar.file}">
+			<srcfiles dir="src/j2me" includes="**/*.java" />
+		</uptodate>
+	</target>
+
+	<target name="preprocess">
+		<mkdir dir="${build.dir}/src" />
+		<mkdir dir="${build.dir}/src-proc/${filename}" />
+
+		<copy todir="${build.dir}/src">
+			<fileset dir="src/j2me">
+				<include name="**/*.java" />
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${version}" />
+			</filterset>
+		</copy>
+
+		<property name="preprocess.symbols.extra" value="NONE" />
+		<property name="all.preprocess.symbols" value="${preprocess.symbols},${preprocess.symbols.global},${preprocess.symbols.midp},${preprocess.symbols.extra}" />
+		<echo message="Preprocess symbols: ${all.preprocess.symbols}" />
+		
+		<wtkpreprocess srcdir="${build.dir}/src" destdir="${build.dir}/src-proc/${filename}" symbols="${preprocess.symbols},${preprocess.symbols.global},${preprocess.symbols.midp},${preprocess.symbols.extra}" verbose="false" />
+		<touch file="${build.dir}/src-proc/done-${filename}" />
+	</target>
+
+	<target name="compile" depends="jad,preprocess">
+		<mkdir dir="${build.dir}/bin/${filename}" />
+
+		<!-- Compile everything, but don't preverify (yet). -->
+
+		<!--
+        <wtkbuild srcdir="${build.dir}/src-proc/${filename}"
+                  destdir="${build.dir}/bin/${filename}"
+        		  debug="false"
+        	      optimize="true"
+                  preverify="false" target="1.4" />
+-->
+
+		<javac srcdir="${build.dir}/src-proc/${filename}" destdir="${build.dir}/bin/${filename}" debug="false" optimize="true" target="1.1" source="1.2" bootclasspathref="${wtk.classpath}" />
+
+		<!-- Package everything. Most of the necessary information is
+             contained in the JAD file. Also preverify the result this
+             time. To obfuscate everything, set the corresponding
+             parameter to "true" (requires RetroGuard or ProGuard). The
+             version parameter increments the MIDlet-Version by one. -->
+	</target>
+
+	<target name="package" depends="compile,resources">
+		<wtkpackage jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscate="false" preverify="false">
+
+			<!-- Package our newly compiled classes. -->
+
+			<fileset dir="${build.dir}/bin/${filename}" />
+		</wtkpackage>
+	</target>
+
+	<target name="resources">
+		<copy todir="${build.dir}/bin/${filename}">
+			<fileset dir="res">
+				<include name="font" />
+			</fileset>
+		</copy>
+
+		<antcall target="resources-icon" />
+		<antcall target="resources-fonts" />
+	</target>
+
+	<target name="resources-icon" if="jad.icon">
+		<copy todir="${build.dir}/bin/${filename}">
+			<fileset dir="res">
+				<include name="${jad.icon}" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="resources-fonts" unless="lite">
+		<copy todir="${build.dir}/bin/${filename}">
+			<fileset dir="res">
+				<include name="font*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="obfuscate" depends="obfuscate-normal,obfuscate-lite,obfuscate-lite-nossh1,obfuscate-blackberry" unless="noobfuscate" />
+
+	<target name="obfuscate-init">
+		<copy todir="${wtk.home}/bin">
+			<fileset dir="lib">
+				<include name="proguard.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="obfuscate-normal" depends="obfuscate-init" if="obfuscate-normal" unless="noobfuscate">
+		<!-- Obfuscate -->
+		<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
+			<argument value="-keep class ssh.v1.Blowfish" />
+			<argument value="-keep class ssh.v1.DES" />
+			<argument value="-keep class ssh.v1.DES3" />
+			<argument value="-keep class ssh.v1.IDEA" />
+			<argument value="-keep class ssh.v1.MD5" />
+			<argument value="-keep class ssh.v1.NONE" />
+			<argument value="-defaultpackage" />
+			<!--<argument value="-dontobfuscate" />-->
+		</wtkobfuscate>
+	</target>
+
+	<target name="obfuscate-blackberry" depends="obfuscate-init" if="obfuscate-blackberry" unless="noobfuscate">
+		<!-- Obfuscate -->
+		<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
+			<argument value="-keep class ssh.v1.DES3" />
+			<argument value="-keep class ssh.v1.Blowfish" />
+			<argument value="-keep class ssh.v1.DES" />
+			<argument value="-keep class ssh.v1.IDEA" />
+			<argument value="-keep class ssh.v1.MD5" />
+			<argument value="-keep class ssh.v1.NONE" />
+			<!-- Don't obfuscate as the Blackberry COD is already obfuscated -->
+			<argument value="-dontobfuscate" />
+		</wtkobfuscate>
+	</target>
+
+	<target name="obfuscate-lite" depends="obfuscate-init" if="obfuscate-lite" unless="noobfuscate">
+		<!-- Obfuscate -->
+		<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
+			<argument value="-keep class ssh.v1.DES3" />
+			<argument value="-defaultpackage" />
+			<argument value="-allowaccessmodification" />
+			<argument value="-overloadaggressively" />
+			<!--<argument value="-dontobfuscate" />-->
+		</wtkobfuscate>
+	</target>
+
+	<target name="obfuscate-lite-nossh1" depends="obfuscate-init" if="obfuscate-lite-nossh1" unless="noobfuscate">
+		<!-- Obfuscate -->
+		<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
+			<argument value="-defaultpackage" />
+			<argument value="-allowaccessmodification" />
+			<argument value="-overloadaggressively" />
+			<!--<argument value="-dontobfuscate" />-->
+		</wtkobfuscate>
+	</target>
+
+	<target name="preverify">
+		<!-- Preverify. -->
+		<wtkpreverify jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" />
+	</target>
+
+	<target name="checksum">
+		<checksum file="${dist.dir}/${jar.file}" algorithm="SHA" fileext=".asc" />
+		<checksum file="${dist.dir}/${jad.file}" algorithm="SHA" fileext=".asc" />
+	</target>
+
+</project>

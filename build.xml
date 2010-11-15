@@ -1,0 +1,259 @@
+<?xml version="1.0"?>
+
+<project name="MidpSSH" basedir="." default="all">
+
+	<property file="build.properties" />
+
+	<taskdef resource="antenna.properties" classpath="lib/antenna-bin-1.0.0.jar" />
+
+	<target name="all" description="Clean and build all versions">
+		<antcall target="clean" />
+		<antcall target="build-all" />
+		<antcall target="source" />
+	</target>
+
+	<target name="build-all">
+		<antcall target="build">
+			<param name="filename" value="midpssh-full" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-ssh1" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh1" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-ssh2-lite" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-ssh1-lite" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh1-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+
+		<antcall target="build">
+			<param name="filename" value="midpssh-midp1-full" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh2" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-midp1-ssh1" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh1" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-midp1-ssh2-lite" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh2-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-midp1-ssh1-lite" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh1-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-midp1-full-noobf" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh2" />
+			<param name="noobfuscate" value="true" />
+		</antcall>
+
+		<antcall target="build-blackberry" />
+		<antcall target="build-httpserver" />
+	</target>
+
+	<target name="build-midp2-full" description="Build midp2 full">
+		<antcall target="build">
+			<param name="filename" value="midpssh-full" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2" />
+		</antcall>
+	</target>
+
+	<target name="build-lite" description="Build lite">
+		<antcall target="build">
+			<param name="filename" value="midpssh-ssh1-lite" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh1-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+		<antcall target="build">
+			<param name="filename" value="midpssh-ssh2-lite" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2-lite" />
+			<param name="lite" value="true" />
+		</antcall>
+
+		<java classname="FileLength" classpath="${build.dir}/tasks" outputproperty="lite.size.1">
+			<arg value="${dist.dir}/midpssh-ssh1-lite.jar" />
+		</java>
+		<java classname="FileLength" classpath="${build.dir}/tasks" outputproperty="lite.size.2">
+			<arg value="${dist.dir}/midpssh-ssh2-lite.jar" />
+		</java>
+		<echo message="Lite SSH1=${lite.size.1} SSH2=${lite.size.2}" />
+	</target>
+
+	<target name="build" if="filename" depends="build-tasks">
+		<ant antfile="build-package.xml" />
+	</target>
+
+	<target name="run-debug">
+		<antcall target="build">
+			<param name="filename" value="midpssh-debug" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2" />
+			<param name="run" value="true" />
+			<param name="noobfuscate" value="true" />
+			<param name="preprocess.symbols.extra" value="blackberry,debugging" />
+		</antcall>
+	</target>
+
+	<target name="run-midp2-ssh2" description="Run MIDP2 SSH2 version">
+		<antcall target="build">
+			<param name="filename" value="midpssh-run" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2" />
+			<param name="run" value="true" />
+		</antcall>
+	</target>
+
+	<target name="run-midp1-ssh2" description="Run MIDP1 SSH2 version">
+		<antcall target="build">
+			<param name="filename" value="midpssh-run" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="ssh2" />
+			<param name="run" value="true" />
+		</antcall>
+	</target>
+
+	<target name="run-midp2-ssh1" description="Run MIDP2 SSH1 version">
+		<antcall target="build">
+			<param name="filename" value="midpssh-run" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh1" />
+			<param name="run" value="true" />
+		</antcall>
+	</target>
+
+	<target name="run-midp2-lite" description="Run MIDP2 Lite version">
+		<antcall target="build">
+			<param name="filename" value="midpssh-run" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="ssh2-lite" />
+			<param name="lite" value="true" />
+			<param name="run" value="true" />
+		</antcall>
+	</target>
+
+	<target name="clean" description="Clean the build">
+		<property file="build.properties" />
+		<delete dir="${build.dir}" />
+		<delete dir="output" />
+		<mkdir dir="${dist.dir}" />
+		<delete>
+			<fileset dir="${dist.dir}">
+				<include name="**" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="run-blackberry" depends="build-tasks" description="Run Blackberry version">
+		<property name="filename" value="midpssh-bb-run" />
+		<property name="midp2" value="true" />
+		<property name="mode" value="blackberry" />
+		<property name="bb.codename" value="midpsshrun" />
+		<property name="bb.name" value="MidpSSHrun" />
+		<ant antfile="build-blackberry.xml" target="run" />
+	</target>
+
+	<target name="build-tasks">
+		<mkdir dir="${build.dir}/tasks" />
+		<javac srcdir="src/tasks" destdir="${build.dir}/tasks" />
+	</target>
+
+	<target name="build-blackberry" description="Build Blackberry versions">
+		<antcall target="build-blackberry2">
+			<param name="filename" value="midpssh-bb" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="blackberry" />
+			<param name="bb.codename" value="midpssh" />
+			<param name="bb.name" value="MidpSSH" />
+		</antcall>
+		<antcall target="build-blackberry2">
+			<param name="filename" value="midpssh-bb-midp2" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="blackberry" />
+			<param name="bb.codename" value="midpssh2" />
+			<param name="bb.name" value="MidpSSH" />
+		</antcall>
+		<antcall target="build-blackberry2">
+			<param name="name" value="${name}e" />
+			<param name="filename" value="midpssh-bb-e" />
+			<param name="midp1" value="true" />
+			<param name="mode" value="blackberry-enterprise" />
+			<param name="bb.codename" value="midpsshe" />
+			<param name="bb.name" value="MidpSSHe" />
+		</antcall>
+		<antcall target="build-blackberry2">
+			<param name="name" value="${name}e" />
+			<param name="filename" value="midpssh-bb-e-midp2" />
+			<param name="midp2" value="true" />
+			<param name="mode" value="blackberry-enterprise" />
+			<param name="bb.codename" value="midpsshe2" />
+			<param name="bb.name" value="MidpSSHe" />
+		</antcall>
+	</target>
+
+	<!--
+	<target name="blackberry-source">
+		<copy todir="blackberry" overwrite="true">
+			<fileset dir="build/src-proc/midpsshbb">
+				<include name="**/*.java"/>
+			</fileset>
+		</copy>
+	</target>
+	-->
+
+	<target name="build-blackberry2" depends="build-tasks">
+		<ant antfile="build-blackberry.xml" />
+	</target>
+
+	<target name="deploy">
+		<exec executable="C:\SonyEricsson\J2ME_SDK\OnDeviceDebug\bin\ejava">
+			<arg value="install" />
+			<arg value="${dist.dir}/${jad.file}" />
+		</exec>
+	</target>
+
+	<target name="source" description="Build source zip">
+		<property file="build.properties" />
+		<zip zipfile="${dist.dir}/${zip.file}">
+			<fileset dir=".">
+				<include name="src/**" />
+				<include name="conf/**" />
+				<include name="res/**" />
+				<include name="lib" />
+				<include name="tasks/" />
+				<include name="*.txt" />
+				<include name="*.xml" />
+				<include name="*.properties" />
+				<exclude name="TODO.txt" />
+				<exclude name="BETA_TESTERS.txt" />
+				<exclude name="UNSUBSCRIBES.txt" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="build-httpserver" description="Builds MidpSSH HTTP Server">
+		<mkdir dir="${build.dir}/httpserver" />
+		<javac srcdir="src/httpserver" destdir="${build.dir}/httpserver" target="1.4" source="1.4" />
+		<jar jarfile="${dist.dir}/midpssh-http-server.jar" basedir="${build.dir}/httpserver" manifest="conf/httpserver-manifest.txt" />
+	</target>
+</project>

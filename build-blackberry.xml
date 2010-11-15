@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+
+<project name="MidpSSH-blackberry" basedir="." default="all">
+
+	<target name="all" depends="init,blackberry-uptodate,alx">
+		<antcall target="build-blackberry"/>
+		<antcall target="ota"/>
+		<antcall target="simple-ota"/>
+	</target>
+
+	<target name="init" depends="init-midp1,init-midp2">
+		<property file="build.properties"/>
+		<property name="jar.file" value="${filename}.jar"/>
+		<property name="jad.file" value="${filename}.jad"/>
+		<property name="ota.jad.file" value="${filename}-ota.jad"/>
+		<property name="cod.file" value="${bb.codename}.cod"/>
+	</target>
+	
+	<target name="init-midp1" if="midp1">
+		<property file="build-blackberry-midp1.properties" />
+	</target>
+	
+	<target name="init-midp2" if="midp2">
+		<property file="build-blackberry-midp2.properties" />
+	</target>
+	
+	<target name="run" depends="all">
+		<available property="has.bb.simulator" file="${bb.simulator}" />
+		<antcall target="run-simulator" />
+		<antcall target="run-simulator2" />
+	</target>
+		
+	<target name="run-simulator" if="has.bb.simulator">
+		<copy todir="${bb.simulator}">
+			<fileset dir="${dist.dir}">
+				<include name="${cod.file}"/>
+			</fileset>
+		</copy>
+		
+		<exec executable="${bb.simulator.run}" dir="${bb.simulator}" />
+	</target>
+	
+	<target name="run-simulator2" unless="has.bb.simulator">
+		<echo message="Blackberry simulator not found: ${bb.simulator}" />
+	</target>
+
+	<target name="build-blackberry" unless="build.uptodate" depends="build">
+		<mkdir dir="${build.dir}/blackberry" />
+		
+		<exec executable="${bb.home}/bin/rapc.exe">
+			<arg value="import=${bb.lib.home}/net_rim_api.jar" />
+			<arg value="codename=${bb.codename}" />
+			<arg value="-midlet" />
+			<arg value="jad=${dist.dir}/${jad.file}"/>
+			<arg value="${dist.dir}/${jar.file}"/>
+		</exec>
+		<move todir="${dist.dir}">
+			<fileset dir=".">
+				<include name="${cod.file}" />
+			</fileset>
+		</move>
+		<delete>
+			<fileset dir=".">
+				<include name="${bb.codename}.cso"/>
+				<include name="${bb.codename}.debug"/>
+				<include name="${bb.codename}-*.debug"/>
+				<include name="${bb.codename}.jar"/>
+			</fileset>
+		</delete>
+	</target>
+	
+	<target name="blackberry-uptodate">
+		<uptodate property="build.uptodate" targetfile="${dist.dir}/${cod.file}">
+			<srcfiles dir="src/j2me" includes="**/*.java"/>
+		</uptodate>
+	</target>
+
+	<target name="build">
+		<ant antfile="build-package.xml" />
+	</target>
+
+	<target name="alx">
+		<copy file="conf/midpssh.alx" tofile="${dist.dir}/${bb.codename}.alx">
+			<filterset>
+				<filter token="VERSION" value="${version}" />
+				<filter token="NAME" value="${bb.name}" />
+				<filter token="CODNAME" value="${bb.codename}" />
+			</filterset>
+		</copy>
+	</target>
+	
+	<target name="ota" if="bb.ota">
+		<mkdir dir="${build.dir}/blackberry/ota" />
+		
+		<!-- Unzip main COD file and rename constituents -->
+		<unzip src="${dist.dir}/${cod.file}" dest="${build.dir}/blackberry/ota" />
+		<copy file="${build.dir}/blackberry/ota/${bb.codename}.cod" tofile="${dist.dir}/${bb.codename}-1.cod" />
+		<copy file="${build.dir}/blackberry/ota/${bb.codename}-1.cod" tofile="${dist.dir}/${bb.codename}-2.cod" />
+		
+		<java classname="FileLength" classpath="${build.dir}/tasks" outputproperty="cod.size.1">
+			<arg value="${dist.dir}/${bb.codename}-1.cod" />
+		</java>
+		
+		<java classname="FileLength" classpath="${build.dir}/tasks" outputproperty="cod.size.2">
+			<arg value="${dist.dir}/${bb.codename}-2.cod" />
+		</java>
+		
+		<!--
+		<length property="cod.size.1" file="${build.dir}/blackberry/ota/${bb.codename}.cod" />
+		<length property="cod.size.2" file="${build.dir}/blackberry/ota/${bb.codename}-1.cod" />
+		-->
+		
+		<java classname="RewriteBlackberryJAD" classpath="${build.dir}/tasks">
+			<arg value="${dist.dir}/${jad.file}" />
+			<arg value="${dist.dir}/${ota.jad.file}" />
+			<arg value="${dist.dir}/${bb.codename}-1.cod" />
+			<arg value="${dist.dir}/${bb.codename}-2.cod" />
+			<arg value="${bb.codename}-1.cod" />
+			<arg value="${bb.codename}-2.cod" />
+			<arg value="${cod.size.1}" />
+			<arg value="${cod.size.2}" />
+		</java>
+	</target>
+
+	<target name="simple-ota" unless="bb.ota">
+		<copy file="${dist.dir}/${jad.file}" tofile="${dist.dir}/${ota.jad.file}" />
+	</target>
+</project>

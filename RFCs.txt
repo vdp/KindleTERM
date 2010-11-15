@@ -1,0 +1,15 @@
+The Secure Shell (SSH) Protocol Architecture
+http://www.ietf.org/rfc/rfc4251.txt
+
+The Secure Shell (SSH) Authentication Protocol
+http://www.ietf.org/rfc/rfc4252.txt
+
+The Secure Shell (SSH) Transport Layer Protocol
+http://www.ietf.org/rfc/rfc4253.txt
+
+The Secure Shell (SSH) Connection Protocol
+http://www.ietf.org/rfc/rfc4254.txt
+
+Generic Message Exchange Authentication for
+                    the Secure Shell Protocol (SSH)
+http://www.ietf.org/rfc/rfc4256.txt

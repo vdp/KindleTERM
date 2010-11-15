@@ -1,0 +1,198 @@
+1.7.3
+Fix SSH protocol error that caused connection drop on ScreenOS firewall - thanks Stefan Brunner
+Improve security of SSH implementation by simple state tracking - thanks to Aleksy Schubert for bringing this to my attention
+
+1.7.2
+Add BB Wi-fi support
+
+1.7.1
+Attempt to fix BB OTA JAD files
+Upgrade to Antenna 1.0.0
+Upgrade to WTK2.5.2
+Upgrade to Proguard 4.1
+
+1.7.0
+Proguard upgrade from 3.3.2 to 3.8. Reduces lite build sizes by 13 and 24 bytes respectively.
+Antenna upgrade from 0.9.13 to 0.9.14. No significant improvements. Just the latest.
+Upgrade to WTK2.5
+BlackBerry JDE upgrade to 4.2.0
+Settings forms no longer have an OK and Back option. They just have a back option, no longer any way to cancel changes.
+Fix Blackberry Pearl ChoiceGroup bug by changing from EXCLUSIVE to POPUP ChoiceGroups for MIDP2.
+
+1.5.8 becomes 1.6.0
+Release version.
+Testing support for avoiding InputStream.available() method
+Improved build process - now deploys each new version into a separate URL so that old versions can be maintained
+Updated to BB 4.0.2
+Checksums created for all files
+Field access permissions tightened as per recommendations in the paper by Erik Poll and Aleksy Schubert (http://zls.mimuw.edu.pl/~alx/papers/wits.pdf)
+
+1.5.4
+Keyboard-interactive support
+
+1.5.3
+Released HTTP proxy support
+
+1.4.20
+Changed lcdfont8x16 to lcdfont8x13
+
+1.4.19
+Added lcdfont8x16
+
+1.4.18
+Fixes for BB bad packets (due to noiosync issue)
+Fix for bad packet type 0 on SSH 1 keep-alive
+Check for accumulated data waiting to send upon ready to send
+
+1.4.12
+Fix for devices that AIOOB on LCD fonts
+BB MIDP2 version
+
+1.4.11
+Added more LCD font sizes
+Added BGR mode for LCD fonts
+Added vertical LCD font
+Bug fix for Siemens full screen and rotated view (thanks to DarkBear)
+
+1.4.10
+Public key authentication added
+Special menu refactored
+Source code overhaul to reduce file size for lite versions
+
+1.4.9
+Added settings menu for SSH2 Lite (as a result of size savings elsewhere)
+Username & Password now optional on sessions and both will be prompted for at connect
+Roar font test
+
+1.4.8
+Fix for BitVise SSH (and maybe others) which sends KEX_INIT immediately after its id string
+Support for typing control chars and newlines in macros
+
+1.4.7
+Setting for polling I/O
+Keep-alive sending re-added for Blackberry (and other no-io-sync).
+Code tidy and shrinkage, especially in SSH2 code
+SSH2 lite version now <64KB
+Predictive text usage is now a setting
+Settings renamed and slighly reorganised
+
+1.4.6
+Function keys and insert keys now work on Blackberry and some other builds where they didn't work before.
+Connection type option for session import on Blackberries
+Sorting of sessions and macro sets fixed
+IOOBException on BB better fixed
+
+1.4.5
+Blackberry type mode freeze fix
+Blackberry enterprise version added (for MDS only to avoid split-pipe security constraint)
+More text fields non-predictive
+
+1.4.4
+Setting for ssh2 private key strength
+Setting to pregenerate ssh2 private and public key on phone and store
+Patch for BigInteger.modPow improved performance (http://www.bouncycastle.org/devmailarchive/msg03877.html)
+Changed default ssh2 key size from 32 to 512 (recommended minimum, http://www.bouncycastle.org/devmailarchive/msg03877.html)
+Display host key fingerprint
+
+1.4.3
+
+Added password prompt if no password provided in session spec
+Added session list download
+Blackberry IOOB fix when using menus
+Choose preferred SSH version for connecting to 1.99 hosts
+Properly implemented ANSI colours, including bold
+
+1.4.2
+
+Vibrate on beep
+INSERT & DELETE special keys added
+Trial removing sync on I/O for Blackberry
+Fixed SSH2 broken in 1.4.1
+Turn off predictive text in input boxes
+Fixed < in tiny font - thanks Goetz Schwandtner
+
+1.4.1
+
+Fixed AraryIndexOutOfBoundsException when connecting to a host with a large key.
+Added Blackberry OTA
+
+1.3.12
+
+Application error on Motorola (and others) fixed - problem in javac target
+Session report no longer displayed if a crash closes the connection, to enable the user to view the error message.
+
+1.3.11
+
+Fixed magenta colour - thanks GeniusOne2
+Added connection type option for Blackberry (default of BES)
+
+1.3.10
+
+Fixed problems introduced in 1.3.9 for Motorola phones due to rolling of SshMisc into SshIO.
+
+1.3.9
+
+Back button added to Key Bindings popup
+Input dialog changed to not blank content if you use the Back button
+Fixed cols/rows, broken in 1.3.8
+
+1.3.8
+
+Fix fullscreen on some devices.
+Reduction in file size.
+Improved functionality on lite builds.
+Added program icon
+
+1.3.7
+
+Settings reorganisation
+"Use" option on macros
+Default macro set when none exist
+
+1.3.6
+
+Fixed game actions interfering in connected mode
+Added home and end keys
+Fixed back-to-main-menu on resume
+
+1.3.5
+
+Disconnect menu item changed so not default on some phones
+Fullscreen option added
+Page up / Page down added
+
+1.3.4
+
+Newlines changed from \n to \r\n then back to \r with fix for telnet
+Interactive typing mode fixed (some phones were interpreting keypresses as game actions - and thus as cursor movements)
+
+1.3.3
+
+Font size options
+Added Midlet-Permission tag to JAD - does this help siemens phones?
+Additional rotation option
+
+1.3.2
+
+terminal type preference, eg. vt320 etc
+joystick operates the cursor all the time rather than just in cursor mode
+FAILED Ssh2 lite < 64KB?
+rotated version - so it could be wider than tall
+Find and fix disconnection on blackberry using ssh2 when pressing backspace in typing mode
+Fixed 1.3.1 bug where you could no longer connect on MIDP 1.0 phones!
+
+1.3.1
+
+Changed select command code so that it shouldn't appear twice on the Blackberry,
+and may work better on midp 1.0 phones.
+Fixed SSH1 lite size so that it will work better on 64KB limited phones.
+Fixed SSH2 idle disconnect problem
+
+1.2.2
+Fixed exceptions when using edit/delete etc on empty lists (session menu, macros menu)
+
+1.2.1
+Reinstated special midp2 enhancements; preprocess symbol wasn't being set correctly
+
+1.2
+SSH2 support
