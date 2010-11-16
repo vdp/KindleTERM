@@ -39,6 +39,7 @@ public class Main extends MIDlet {
 	public Main() {
 		Main.instance = this;
 		mainMenu = new MainMenu();
+                System.out.println("Test\n");
 		Settings.init();
 	}
 
@@ -66,7 +67,24 @@ public class Main extends MIDlet {
 		instance.notifyDestroyed();
 		instance = null;
 	}
-    
+
+        public static void printStack(String msg, long pause) {
+            msg += " (wait " + pause + "sec)";
+            try {
+                throw new IllegalArgumentException(msg);
+            } catch (IllegalArgumentException iae) {
+                iae.printStackTrace();
+            }
+
+            if (pause > 0) {
+                try {
+                    Thread.sleep(pause * 1000);
+                }
+                catch(InterruptedException ie) {
+                }
+            }
+        }
+
     /*
     public static void debug(String msg) {
         Alert alert = new Alert("DEBUG");

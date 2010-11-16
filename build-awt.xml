@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MidpSSH-AWT" default="run" basedir=".">
+
+    <property file="build.properties" />
+    <taskdef resource="antenna.properties" classpath="lib/antenna-bin-1.2.1-beta.jar" />
+
+    <property name="awt.build.dir" value="${build.dir}/bin/awt"/>
+    <property name="src.dir" value="src/j2me"/>
+    <property name="src.tmp.dir" value="${build.dir}/src-proc/orig"/>
+    <property name="src.processed.dir" value="${build.dir}/src-proc/awt"/>
+
+    <property name="log4j" value="/usr/share/java/log4j-1.2.jar"/>
+
+    <path id="classpath">
+        <pathelement location="${awt.build.dir}"/>
+        <pathelement location="${log4j}"/>
+        <pathelement location="dist/KindleTERM-unsigned.jar"/>
+
+        <!-- MIDP classes - remove after rewrite completion -->
+        <!--<fileset dir="${wtk.home}">
+            <include name="lib/midpapi20.jar" />
+            <include name="lib/cldcapi10.jar" />
+        </fileset>-->
+
+        <!-- MidpSSH classes - exclude MIDP 'infected' classes after rewrite -->
+        <!--<pathelement location="${build.dir}/bin"/>-->
+    </path>
+
+    <target name="preprocess">
+		<mkdir dir="${src.processed.dir}" />
+                <mkdir dir="${src.tmp.dir}" />
+		
+		 <copy todir="${src.tmp.dir}">
+			<fileset dir="src/j2me">
+                                <include name="**/*.java" />
+                                <exclude name="**/awt/*.java"/>
+                                <exclude name="**/kindle/*.java"/>
+                                <excludesfile name="excludes.cfg"/>
+                        </fileset>
+			<filterset>
+				<filter token="VERSION" value="${version}" />
+			</filterset>
+		</copy>
+
+		<property name="awt.preprocess.symbols" value="ssh2,keybrdinteractive,midp2,noj2me"/>
+                <echo message="Preprocess symbols: ${awt.preprocess.symbols}" />
+
+		<wtkpreprocess srcdir="${src.tmp.dir}" destdir="${src.processed.dir}" symbols="${awt.preprocess.symbols}" verbose="false" />
+		<!--<touch file="${build.dir}/src-proc/done-${filename}" />-->
+	</target>
+
+    <target name="build" depends="preprocess">
+        <mkdir dir="${awt.build.dir}"/>
+
+        <javac srcdir="${src.processed.dir}"
+	    destdir="${awt.build.dir}"
+	    classpathref="classpath"
+	    optimize="off"
+            debug="on"
+	    includes="**"
+            source="1.4"
+	    target="1.4"/>
+
+       <javac
+            sourcepath=""
+            srcdir="${src.dir}"
+	    destdir="${awt.build.dir}"
+	    classpathref="classpath"
+	    optimize="off"
+            debug="on"
+	    includes="**/awt/*.java"
+            source="1.4"
+	    target="1.4">
+                <include name="**/awt/*java"/>
+        </javac>
+
+    </target>
+
+    <target name="run" depends="build">
+        <java classname="awt.AwtMain"
+              classpathref="classpath"
+              fork="true"/>
+    </target>
+</project>

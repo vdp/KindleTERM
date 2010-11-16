@@ -103,7 +103,9 @@
 		<copy todir="${build.dir}/src">
 			<fileset dir="src/j2me">
 				<include name="**/*.java" />
-			</fileset>
+                                <exclude name="**/awt/*.java"/>
+				<exclude name="**/kindle/*java"/>
+                        </fileset>
 			<filterset>
 				<filter token="VERSION" value="${version}" />
 			</filterset>
@@ -187,16 +189,16 @@
 
 	<target name="obfuscate-normal" depends="obfuscate-init" if="obfuscate-normal" unless="noobfuscate">
 		<!-- Obfuscate -->
-		<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
+		<!--<wtkobfuscate jarfile="${dist.dir}/${jar.file}" jadfile="${dist.dir}/${jad.file}" obfuscator="proguard" classpath="lib/proguard.jar">
 			<argument value="-keep class ssh.v1.Blowfish" />
 			<argument value="-keep class ssh.v1.DES" />
 			<argument value="-keep class ssh.v1.DES3" />
 			<argument value="-keep class ssh.v1.IDEA" />
 			<argument value="-keep class ssh.v1.MD5" />
 			<argument value="-keep class ssh.v1.NONE" />
-			<argument value="-defaultpackage" />
+			<argument value="-defaultpackage" /> -->
 			<!--<argument value="-dontobfuscate" />-->
-		</wtkobfuscate>
+		<!-- </wtkobfuscate> -->
 	</target>
 
 	<target name="obfuscate-blackberry" depends="obfuscate-init" if="obfuscate-blackberry" unless="noobfuscate">

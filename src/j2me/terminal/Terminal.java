@@ -38,6 +38,7 @@ import javax.microedition.lcdui.TextField;
 
 import app.Settings;
 import app.session.Session;
+import gui.Redrawable;
 
 
 /**
@@ -45,7 +46,8 @@ import app.session.Session;
  * variable "buffer"), execute and store actions defined by user.
  */
 
-public class Terminal extends Canvas implements Activatable, CommandListener {
+public class Terminal extends Canvas 
+        implements Activatable, CommandListener, Redrawable {
 
     private static final int MODE_DISCONNECTED = 0;
     

@@ -1,16 +1,20 @@
 <?xml version="1.0"?>
 
-<project name="MidpSSH" basedir="." default="all">
+<project name="MidpSSH" basedir="." default="build-awt">
 
 	<property file="build.properties" />
 
-	<taskdef resource="antenna.properties" classpath="lib/antenna-bin-1.0.0.jar" />
+	<taskdef resource="antenna.properties" classpath="lib/antenna-bin-1.2.1-beta.jar" />
 
 	<target name="all" description="Clean and build all versions">
 		<antcall target="clean" />
 		<antcall target="build-all" />
 		<antcall target="source" />
 	</target>
+
+        <target name="build-awt">
+            <ant antfile="build-awt.xml" />
+        </target>
 
 	<target name="build-all">
 		<antcall target="build">
@@ -172,6 +176,8 @@
 		<property name="bb.name" value="MidpSSHrun" />
 		<ant antfile="build-blackberry.xml" target="run" />
 	</target>
+
+        <target name="run" depends="run-midp2-ssh2"/>
 
 	<target name="build-tasks">
 		<mkdir dir="${build.dir}/tasks" />

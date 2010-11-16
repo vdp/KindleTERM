@@ -22,8 +22,11 @@
  */
 package gui;
 
+import app.Main;
 import java.util.Vector;
 
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
@@ -71,7 +74,14 @@ public class SessionsMenu extends EditableMenu {
     	if (displayable == authenticationDialog) {
     		if (command == MainMenu.okCommand) {
 	    		SshSession session = new SshSession();
-	    		session.connect(conn, usernameField.getString(), passwordField.getString());
+                        session.connect(conn, usernameField.getString(), passwordField.getString());
+                        Main.quitApp();
+                        System.out.print("After session.connect()\n");
+                try {
+                    Thread.sleep(20000);
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(SessionsMenu.class.getName()).log(Level.SEVERE, null, ex);
+                }
 	            MainMenu.openSession( session );
     		}
     		else {
@@ -90,6 +100,7 @@ public class SessionsMenu extends EditableMenu {
 	        else
 	        	//#endif
 	        {
+                    System.out.println("Tadaa\n");
 	            super.commandAction(command, displayable);
 	        }
     	}
@@ -108,45 +119,45 @@ public class SessionsMenu extends EditableMenu {
 		}
 	}
 
-	protected void doSelect( int i ) {
-		if ( i != -1 ) {
-			conn = SessionManager.getSession( i );
-			if ( conn != null ) {
+	   protected void doSelect(int i) {
+        if (i != -1) {
+            conn = SessionManager.getSession(i);
+            if (conn != null) {
 //#ifndef nossh
-				if ( conn.type.equals( SessionSpec.TYPE_SSH ) ) {
-					String username = conn.username;
+                if (conn.type.equals(SessionSpec.TYPE_SSH)) {
+                    String username = conn.username;
                     String password = conn.password;
-                    
+
                     if (username.length() == 0 || (password.length() == 0 && !conn.usepublickey)) {
-                    	authenticationDialog = new Form("Authentication");
-                    	usernameField = new TextField("Username:", username, 255, TextField.ANY);
-                    	authenticationDialog.append(usernameField);
-                    	if (!conn.usepublickey) {
-                    		passwordField = new TextField("Password:", password, 255, TextField.PASSWORD);
-                        	authenticationDialog.append(passwordField);
-                    	}
-                    	authenticationDialog.addCommand(MainMenu.okCommand);
-                    	authenticationDialog.addCommand(MainMenu.backCommand);
-                    	authenticationDialog.setCommandListener(this);
-                    	MainMenu.setDisplay(authenticationDialog);
+                        authenticationDialog = new Form("Authentication");
+                        usernameField = new TextField("Username:", username, 255, TextField.ANY);
+                        authenticationDialog.append(usernameField);
+                        if (!conn.usepublickey) {
+                            passwordField = new TextField("Password:", password, 255, TextField.PASSWORD);
+                            authenticationDialog.append(passwordField);
+                        }
+                        authenticationDialog.addCommand(MainMenu.okCommand);
+                        authenticationDialog.addCommand(MainMenu.backCommand);
+                        authenticationDialog.setCommandListener(this);
+                        MainMenu.setDisplay(authenticationDialog);
+                    } else {
+                        SshSession session = new SshSession();
+                        session.connect(conn, null, null);
+                        Main.printStack("After session.connect(conn, null, null)", 0);
+                        MainMenu.openSession(session);
                     }
-                    else {
-                    	SshSession session = new SshSession();
-    					session.connect( conn, null, null );
-    					MainMenu.openSession( session );
-                    }
-				}
+                }
 //#endif
 //#ifndef notelnet
-				if ( conn.type.equals( SessionSpec.TYPE_TELNET ) ) {
-					TelnetSession session = new TelnetSession();
-					session.connect( conn );
-					MainMenu.openSession( session );
-				}
+                if (conn.type.equals(SessionSpec.TYPE_TELNET)) {
+                    TelnetSession session = new TelnetSession();
+                    session.connect(conn);
+                    MainMenu.openSession(session);
+                }
 //#endif
-			}
-		}
-	}
+            }
+        }
+    }
 
 	protected void doEdit( int i ) {
 		if ( i != -1 ) {

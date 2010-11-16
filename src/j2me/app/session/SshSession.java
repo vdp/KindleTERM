@@ -41,7 +41,8 @@ import app.Settings;
  * @author Karl von Randow
  * 
  */
-public class SshSession extends Session implements SessionIOHandler
+public class SshSession extends Session 
+        implements SessionIOHandler, ISshSession
 	//#ifdef keybrdinteractive
 	, CommandListener
 	//#endif

@@ -27,6 +27,7 @@
 
 package terminal;
 
+import gui.Redrawable;
 import java.io.IOException;
 
 /**
@@ -1068,7 +1069,7 @@ public abstract class VT320 {
 			case VT320.VK_BACK_SPACE:
 				writeSpecial( BackSpace[xind] );
 				if ( localecho ) {
-					if ( BackSpace[xind] == "\b" ) {
+					if ( BackSpace[xind].equals("\b") ) {
 						putString( "\b \b" ); // make the last char 'deleted'
 					}
 					else {
@@ -2896,9 +2897,9 @@ public abstract class VT320 {
     private int bottomMargin; /* bottom scroll margin */
 
     // cursor variables
-    protected boolean showcursor = true;
+    public boolean showcursor = true;
 
-    protected int cursorX, cursorY;
+    public int cursorX, cursorY;
 
     /** Scroll up when inserting a line. */
     public final static boolean SCROLL_UP = false;
@@ -3697,9 +3698,9 @@ public abstract class VT320 {
     }
 
     /** a generic display that should redraw on demand */
-    protected Terminal display;
+    protected Redrawable display;
 
-    public void setDisplay( Terminal display ) {
+    public void setDisplay(Redrawable display) {
         this.display = display;
     }
 

@@ -1,0 +1,132 @@
+<project name="KindleTERM" default="build-all" basedir=".">
+
+   <property name="appname" value="KindleTERM"/>
+
+   <property file="build.properties" />
+   <taskdef resource="antenna.properties" classpath="lib/antenna-bin-1.2.1-beta.jar" />
+
+   <property name="kdk.jar" value="lib/kdk.jar"/>
+   <property name="log4j.jar" value="/usr/share/java/log4j-1.2.jar"/>
+   <property name="junit.jar" value="/usr/share/java/junit-3.8.2.jar"/>
+
+   <property name="keystore" value="conf/developer.keystore"/>
+   <property name="storepass" value="password"/>
+  
+   <property name="src" value="${basedir}/src/j2me"/>
+   <property name="src.test" value="${basedir}/test"/>
+
+   <property name="build.dir" value="${basedir}/build"/>
+   <property name="kindle.build.dir" value="${build.dir}/bin/kindle"/>
+   <property name="dist.dir" value="${basedir}/dist"/>
+   <property name="src.tmp.dir" value="${build.dir}/src-proc/orig"/>
+   <property name="src.processed.dir" value="${build.dir}/src-proc/kindle"/>
+
+   <property name="scp.dir.docs" value="root:pass@kindle:/mnt/us/documents"/>
+   <property name="scp.dir.work" value="root:pass@kindle:/mnt/us/developer/KindleTerm/work"/>
+   
+   <path id="classpath">
+      <pathelement location="${build.dir}"/>
+      <pathelement location="${kdk.jar}"/>
+      <pathelement location="${junit.jar}"/>
+      <pathelement location="${log4j.jar}"/>
+   </path>
+
+   <target name="preprocess">
+        <mkdir dir="${src.processed.dir}" />
+        <mkdir dir="${src.tmp.dir}" />
+
+	<copy todir="${src.tmp.dir}">
+            <fileset dir="${src}">
+                <include name="**/*.java" />
+                <exclude name="**/awt/*.java"/>
+                <exclude name="**/kindle/*.java"/>
+                                <excludesfile name="excludes.cfg"/>
+            </fileset>
+            <filterset>
+		<filter token="VERSION" value="${version}" />
+            </filterset>
+	</copy>
+
+	<property name="kindle.preprocess.symbols" value="ssh2,keybrdinteractive,midp2,noj2me"/>
+        <echo message="Preprocess symbols: ${kindle.preprocess.symbols}" />
+
+	<wtkpreprocess srcdir="${src.tmp.dir}" destdir="${src.processed.dir}" symbols="${kindle.preprocess.symbols}" verbose="false" />
+    </target>
+
+   <target name="compile" depends="preprocess">
+     <mkdir dir="${kindle.build.dir}"/>
+     <javac srcdir="${src.processed.dir}"
+	    destdir="${kindle.build.dir}"
+	    classpathref="classpath"
+	    optimize="off"
+            debug="on"
+	    includes="**"
+            source="1.4"
+	    target="1.4"/>
+
+     <javac
+            sourcepath=""
+            srcdir="${src}"
+	    destdir="${kindle.build.dir}"
+	    classpathref="classpath"
+	    optimize="off"
+            debug="on"
+	    includes="**/awt/*.java,**/kindle/*.java"
+            source="1.4"
+	    target="1.4">
+                <include name="**/awt/*java"/>
+                <include name="**/kindle/*.java"/>
+        </javac>
+
+   </target>
+
+   <target name="jar" depends="compile">
+     <mkdir dir="${dist.dir}"/>
+     <jar destfile="${dist.dir}/${appname}-unsigned.jar" 
+          basedir="${kindle.build.dir}"
+          manifest="conf/${appname}.manifest" />
+   </target>
+
+   <target name="sign" depends="jar">
+     <copy file="${dist.dir}/${appname}-unsigned.jar"
+	   tofile="${dist.dir}/${appname}.azw2"/>
+     <signjar jar="${dist.dir}/${appname}.azw2"
+              keystore="${keystore}"
+              storepass="${storepass}"
+              alias="dktest"/>
+     <signjar jar="${dist.dir}/${appname}.azw2"
+              keystore="${keystore}"
+              storepass="${storepass}"
+              alias="ditest"/>
+     <signjar jar="${dist.dir}/${appname}.azw2"
+              keystore="${keystore}"
+              storepass="${storepass}"
+              alias="dntest"/>
+   </target>
+
+   <target name="build-all" depends="sign"/>
+
+   <target name="deploy" depends="build-all">
+       <scp file="${dist.dir}/${appname}.azw2"
+            todir="${scp.dir.docs}"/>
+
+       <sleep seconds="3"/>
+
+       <sshexec host="kindle"
+                username="root"
+                password="pass"
+                command="/mnt/us/usbnet/bin/reload-documents" />
+
+       <scp file="conf/session.properties"
+            todir="${scp.dir.work}"/>
+
+       <scp file="conf/log4j.properties"
+            todir="${scp.dir.work}"/>
+   </target>
+
+   <target name="clean">
+     <delete dir="${dist.dir}"/>
+     <delete dir="${build.dir}"/>
+   </target>
+
+</project>

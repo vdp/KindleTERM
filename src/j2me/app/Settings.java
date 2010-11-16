@@ -95,6 +95,8 @@ public class Settings extends MyRecordStore {
 
 	public static int httpProxyMode;
 
+        public static void print() {}
+
 	public static void init() {
 		defaults();
 		me.load(RMS_NAME, false);

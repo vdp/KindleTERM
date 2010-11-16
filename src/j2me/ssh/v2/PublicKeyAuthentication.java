@@ -1,8 +1,9 @@
 package ssh.v2;
 
 import java.util.Random;
-
+//#ifndef noj2me
 import app.Settings;
+//#endif
 
 public class PublicKeyAuthentication {
 
@@ -18,8 +19,13 @@ public class PublicKeyAuthentication {
 
 	//#ifdef ssh2
 	public PublicKeyAuthentication() {
+            //#ifndef noj2me
 		this.x = new BigInteger(Settings.x);
 		this.y = new BigInteger(Settings.y);
+            //#else
+                this.x = null;
+                this.y = null;
+            //#endif
 	}
 	//#endif
 

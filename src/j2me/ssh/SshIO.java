@@ -27,6 +27,7 @@
 
 package ssh;
 
+//import app.Main;
 import java.io.IOException;
 import java.util.Random;
 
@@ -40,8 +41,11 @@ import ssh.v2.PublicKeyAuthentication;
 import ssh.v2.SHA1Digest;
 import ssh.v2.SshCrypto2;
 import ssh.v2.SshPacket2;
+//#ifndef noj2me
 import app.Settings;
-import app.session.SshSession;
+//#endif
+import app.session.ISshSession;
+//import app.session.SshSession;
 
 /**
  * Secure Shell IO
@@ -53,7 +57,7 @@ public class SshIO {
 
 	private static MD5 md5 = new MD5();
 	
-	private SshSession sshSession;
+	private ISshSession sshSession;
 
 	/**
 	 * variables for the connection
@@ -257,7 +261,7 @@ public class SshIO {
 	/**
 	 * Initialise SshIO
 	 */
-	public SshIO(SshSession sshSession) {
+	public SshIO(ISshSession sshSession) {
 		this.sshSession = sshSession;
 	}
 
@@ -355,6 +359,7 @@ public class SshIO {
 							useprotocol = 2;
 						} else {
 							//#ifndef nossh1
+                                                        //#ifndef noj2me
 							/*
 							 * Check if we have discretion over whether to use ssh1
 							 * or ssh2
@@ -378,6 +383,7 @@ public class SshIO {
 							else {
 								return "Server requires SSH1.\r\n".getBytes();
 							}
+                                                        //#endif
 							//#endif
 						}
 						//#else
@@ -411,6 +417,8 @@ public class SshIO {
 						//#else
 						currentpacket = new SshPacket1();
 						//#endif
+
+                                                //Main.printStack("Phase init end", 0);
 						
 						break PHASE_INIT;
 					}
@@ -531,6 +539,7 @@ public class SshIO {
 			byte[] I_C = pn.getData();
 			sendPacket2(pn);
 
+                        //#ifndef noj2me
 			if (Settings.ssh2StoreKey) {
 				if (Settings.ssh2x == null || Settings.ssh2y == null) {
 					byte[][] keys = DHKeyExchange
@@ -544,6 +553,9 @@ public class SshIO {
 			} else {
 				dhkex = new DHKeyExchange(Settings.ssh2KeySize);
 			}
+                        //#else
+                        dhkex = new DHKeyExchange(512);
+                        //#endif
 
 			dhkex.V_S = idstr.trim().getBytes();
 			dhkex.V_C = idstr_sent.trim().getBytes();
@@ -553,6 +565,8 @@ public class SshIO {
 			pn = new SshPacket2(SSH2_MSG_KEXDH_INIT);
 			pn.putMpInt(dhkex.getE());
 			sendPacket2(pn);
+
+                        //Main.printStack("DH end", state);
 
 			return "Negotiating...";
 		}
@@ -740,6 +754,7 @@ public class SshIO {
 		SshPacket2 buf = new SshPacket2(SSH2_MSG_USERAUTH_REQUEST);
 		buf.putString(login);
 		buf.putString("ssh-connection");
+                //#ifndef noj2me
 		if (usepublickey && Settings.x != null && authmode < MODE_PUBLICKEY) {
 			/* Try publickey */
 			authmode = MODE_PUBLICKEY;
@@ -764,6 +779,7 @@ public class SshIO {
 			//#endif
 		}
 		else if (authmode < MODE_PASSWORD) {
+                //#endif
 			/* Do password auth */
 			authmode = MODE_PASSWORD;
 			
@@ -771,6 +787,8 @@ public class SshIO {
 			buf.putByte((byte) 0);
 			buf.putString(password);
 			sendPacket2(buf);
+
+                        //Main.printStack("Auth mode is PASSWORD", 0);
 			
 			//#ifndef noinstructions
 			//#ifdef removeme
@@ -780,6 +798,8 @@ public class SshIO {
 			//#else
 			return "";
 			//#endif
+
+                //#ifndef noj2me
 		}
 		//#ifdef keybrdinteractive
 		else if (authmode < MODE_KEYBOARD_INTERACTIVE) {
@@ -804,6 +824,7 @@ public class SshIO {
 		else {
 			return null;
 		}
+                //#endif
 	}
 
 	private void sendPacket2(SshPacket2 packet) throws IOException {
